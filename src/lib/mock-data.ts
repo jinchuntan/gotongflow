@@ -160,6 +160,13 @@ export const baseGotongProject: GotongProject = {
   ],
 };
 
+export function createMockGotongProject(notes = sampleNotes): GotongProject {
+  return {
+    ...structuredClone(baseGotongProject),
+    sourceNotes: notes.trim() || sampleNotes,
+  };
+}
+
 export function getMemberName(project: GotongProject, id: MemberId) {
   return project.members.find((member) => member.id === id)?.name ?? "Team";
 }

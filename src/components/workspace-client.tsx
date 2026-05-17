@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { analyzeTeamNotes, signInWithChutes } from "@/lib/chutes-agent";
+import { analyzeTeamNotes, getChutesSession, type ChutesSession } from "@/lib/chutes-agent";
 import type {
   ContributionBalance,
   GotongEdge,
@@ -44,7 +44,9 @@ export function WorkspaceClient() {
   const [proofTaskId, setProofTaskId] = useState<string | null>(null);
   const [proofAnchor, setProofAnchor] = useState<ProofAnchor | null>(null);
   const [isAnchoring, setIsAnchoring] = useState(false);
-  const [authState, setAuthState] = useState<"idle" | "mock-session">("idle");
+  const [authState, setAuthState] = useState<ChutesSession["status"] | "loading">("loading");
+  const [analysisMode, setAnalysisMode] = useState<"idle" | "local-mock" | "chutes">("idle");
+  const [analysisMessage, setAnalysisMessage] = useState(getInitialAnalysisMessage);
 
   const proofTask = useMemo(
     () => project?.tasks.find((task) => task.id === proofTaskId) ?? null,
@@ -52,21 +54,42 @@ export function WorkspaceClient() {
   );
   const proofOwner = proofTask && project ? getMemberName(project, proofTask.ownerId) : "Team";
 
+  useEffect(() => {
+    let active = true;
+
+    getChutesSession().then((session) => {
+      if (active) {
+        setAuthState(session.status);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function handleAnalyze() {
     setIsAnalyzing(true);
     setProject(null);
     setSelected(null);
     setProofAnchor(null);
 
-    const result = await analyzeTeamNotes(notes);
-    setProject(recalculateContribution(result.project));
-    setAnalysisVersion((current) => current + 1);
-    setIsAnalyzing(false);
+    try {
+      const result = await analyzeTeamNotes(notes);
+      setProject(recalculateContribution(result.project));
+      setAnalysisMode(result.mode);
+      setAnalysisMessage(result.message ?? (result.mode === "chutes" ? "Analyzed with Chutes." : "Local mock analysis."));
+      setAnalysisVersion((current) => current + 1);
+    } catch {
+      setAnalysisMessage("Analyzer route failed. Check dev server logs.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   }
 
-  async function handleChutesSignIn() {
-    const session = await signInWithChutes();
-    setAuthState(session.status);
+  function handleChutesSignIn() {
+    window.location.href =
+      authState === "signed-in" ? "/api/auth/chutes/logout" : "/api/auth/chutes/login?returnTo=/workspace";
   }
 
   function handleProofSubmit(taskId: string, proof: ProofSubmission) {
@@ -121,10 +144,21 @@ export function WorkspaceClient() {
             <Badge className="border-[#6d8cff]/25 bg-[#6d8cff]/12 text-[#334bb2]" variant="outline">
               AI + Web3 MVP
             </Badge>
+            <Badge
+              className={cn(
+                "border-[#251c13]/12 bg-white text-[#6f5f4e]",
+                analysisMode === "chutes" && "border-[#35c7b3]/25 bg-[#effff9] text-[#0b675d]",
+                analysisMode === "local-mock" && "border-[#f6b84b]/25 bg-[#f6b84b]/14 text-[#76500f]",
+              )}
+              variant="outline"
+            >
+              {analysisMode === "chutes" ? "Chutes Live" : analysisMode === "local-mock" ? "Mock AI" : "AI Ready"}
+            </Badge>
             <Button
               className={cn(
                 "border-[#251c13]/12 bg-white text-[#24170f] hover:bg-[#fff8ed]",
-                authState === "mock-session" && "border-[#35c7b3]/30 bg-[#effff9] text-[#0b675d]",
+                (authState === "signed-in" || authState === "server-key-ready") &&
+                  "border-[#35c7b3]/30 bg-[#effff9] text-[#0b675d]",
               )}
               onClick={handleChutesSignIn}
               size="sm"
@@ -132,7 +166,13 @@ export function WorkspaceClient() {
               variant="outline"
             >
               <Fingerprint />
-              {authState === "mock-session" ? "Chutes Mocked" : "Sign in with Chutes"}
+              {authState === "loading"
+                ? "Checking Chutes"
+                : authState === "signed-in"
+                  ? "Chutes Signed In"
+                  : authState === "server-key-ready"
+                    ? "Chutes API Ready"
+                    : "Sign in with Chutes"}
             </Button>
             <Button onClick={handleReset} size="icon-sm" title="Reset demo" type="button" variant="ghost">
               <RotateCcw />
@@ -165,6 +205,9 @@ export function WorkspaceClient() {
               {isAnalyzing ? <Loader2 className="animate-spin" /> : <Sparkles />}
               Analyze Team Notes
             </Button>
+            <div className="mt-3 rounded-lg border border-[#251c13]/10 bg-white/70 px-3 py-2 text-xs font-medium text-[#6f5f4e]">
+              {analysisMessage}
+            </div>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
               {[
                 ["4", "people"],
@@ -309,6 +352,28 @@ function InsightTile({
       <div className="text-sm font-semibold">{value}</div>
     </div>
   );
+}
+
+function getInitialAnalysisMessage() {
+  if (typeof window === "undefined") {
+    return "Mock demo ready.";
+  }
+
+  const authResult = new URLSearchParams(window.location.search).get("auth");
+
+  if (authResult === "missing_chutes_credentials") {
+    return "Add Chutes OAuth env vars, or use CHUTES_API_KEY for live inference.";
+  }
+
+  if (authResult === "success") {
+    return "Signed in with Chutes. Analyze now uses user-scoped inference.";
+  }
+
+  if (authResult === "failed") {
+    return "Chutes sign-in did not complete. Mock mode is still available.";
+  }
+
+  return "Mock demo ready.";
 }
 
 function applyProof(project: GotongProject, taskId: string, proof: ProofSubmission): GotongProject {

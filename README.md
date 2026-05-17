@@ -30,10 +30,43 @@ Teamwork gets messy fast: unclear ownership, hidden blockers, and uneven credit.
 
 ## Chutes Integration Path
 
-- Add a server-only `CHUTES_API_TOKEN`.
-- Replace the local mock branch in `analyzeTeamNotes()` with `callChutesInference()`.
-- Wire the Sign in with Chutes button to the real Chutes auth flow in `signInWithChutes()`.
-- Validate the model response against the `GotongProject` shape before rendering.
+- Copy `.env.example` to `.env.local`.
+- Add `CHUTES_API_KEY` for live shared Chutes inference.
+- Optional: add `CHUTES_OAUTH_CLIENT_ID` and `CHUTES_OAUTH_CLIENT_SECRET` for Sign in with Chutes.
+- The app uses server routes so tokens and client secrets never reach browser code.
+
+### Live AI Route
+
+- `src/app/api/ai/analyze-notes/route.ts`
+- Uses the signed-in user's OAuth token first.
+- Falls back to `CHUTES_API_KEY`.
+- Falls back to local mock analysis if no Chutes credential exists or inference fails.
+
+### Sign in with Chutes Routes
+
+- `/api/auth/chutes/login`
+- `/api/auth/chutes/callback`
+- `/api/auth/chutes/session`
+- `/api/auth/chutes/logout`
+
+The OAuth flow uses Authorization Code + PKCE and stores tokens in HttpOnly cookies.
+
+### Required Chutes Env Vars
+
+```bash
+CHUTES_API_KEY=cpk_...
+CHUTES_BASE_URL=https://llm.chutes.ai/v1
+CHUTES_MODEL=deepseek-ai/DeepSeek-V3-0324
+```
+
+For OAuth:
+
+```bash
+CHUTES_OAUTH_CLIENT_ID=cid_...
+CHUTES_OAUTH_CLIENT_SECRET=csc_...
+CHUTES_OAUTH_REDIRECT_URI=http://localhost:3000/api/auth/chutes/callback
+CHUTES_OAUTH_SCOPES="openid profile chutes:invoke"
+```
 
 ## Tech Stack
 

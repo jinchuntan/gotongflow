@@ -29,7 +29,7 @@ export function LandingPage() {
             size="sm"
             variant="outline"
           >
-            <Link href="/workspace">
+            <Link href="/api/auth/chutes/login?returnTo=/workspace">
               <Fingerprint />
               Sign in with Chutes
             </Link>
