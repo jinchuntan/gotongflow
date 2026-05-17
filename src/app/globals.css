@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-heading: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #fff8ed;
+  --foreground: #24170f;
+  --card: #fffaf1;
+  --card-foreground: #24170f;
+  --popover: #fffaf1;
+  --popover-foreground: #24170f;
+  --primary: #24170f;
+  --primary-foreground: #fff8ed;
+  --secondary: #e9fff8;
+  --secondary-foreground: #0b675d;
+  --muted: #efe2d1;
+  --muted-foreground: #6f5f4e;
+  --accent: #f6b84b;
+  --accent-foreground: #24170f;
+  --destructive: #d8393f;
+  --border: #e1d2bf;
+  --input: #e1d2bf;
+  --ring: #35c7b3;
+  --chart-1: #f6b84b;
+  --chart-2: #35c7b3;
+  --chart-3: #6d8cff;
+  --chart-4: #e85d87;
+  --chart-5: #24170f;
+  --radius: 0.5rem;
+  --sidebar: #fffaf1;
+  --sidebar-foreground: #24170f;
+  --sidebar-primary: #24170f;
+  --sidebar-primary-foreground: #fff8ed;
+  --sidebar-accent: #e9fff8;
+  --sidebar-accent-foreground: #0b675d;
+  --sidebar-border: #e1d2bf;
+  --sidebar-ring: #35c7b3;
+}
+
+.dark {
+  --background: #120f0c;
+  --foreground: #fff8ed;
+  --card: #1b140f;
+  --card-foreground: #fff8ed;
+  --popover: #1b140f;
+  --popover-foreground: #fff8ed;
+  --primary: #f6b84b;
+  --primary-foreground: #24170f;
+  --secondary: #17352f;
+  --secondary-foreground: #9ff6ea;
+  --muted: #36271b;
+  --muted-foreground: #dcc7ad;
+  --accent: #35c7b3;
+  --accent-foreground: #10221f;
+  --destructive: #ff6b6b;
+  --border: rgb(255 240 212 / 14%);
+  --input: rgb(255 240 212 / 18%);
+  --ring: #35c7b3;
+  --chart-1: #f6b84b;
+  --chart-2: #35c7b3;
+  --chart-3: #6d8cff;
+  --chart-4: #e85d87;
+  --chart-5: #fff8ed;
+  --sidebar: #1b140f;
+  --sidebar-foreground: #fff8ed;
+  --sidebar-primary: #f6b84b;
+  --sidebar-primary-foreground: #24170f;
+  --sidebar-accent: #17352f;
+  --sidebar-accent-foreground: #9ff6ea;
+  --sidebar-border: rgb(255 240 212 / 14%);
+  --sidebar-ring: #35c7b3;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+::selection {
+  background: #35c7b3;
+  color: #10221f;
+}
+
+.batik-surface {
+  background:
+    linear-gradient(90deg, rgb(246 184 75 / 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(53 199 179 / 0.08) 1px, transparent 1px),
+    repeating-linear-gradient(45deg, rgb(232 93 135 / 0.05) 0 8px, transparent 8px 24px),
+    #fff8ed;
+  background-size: 34px 34px, 34px 34px, 48px 48px, auto;
+}
+
+.workspace-weave {
+  background:
+    repeating-linear-gradient(90deg, rgb(246 184 75 / 0.08) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(0deg, rgb(53 199 179 / 0.07) 0 1px, transparent 1px 26px),
+    linear-gradient(135deg, #fff8ed 0%, #f4ecdf 48%, #eaf9f4 100%);
+}
